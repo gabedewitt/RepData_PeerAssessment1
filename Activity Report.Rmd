@@ -1,0 +1,25 @@
+---
+title: "Activity monitoring data report"
+author: "Gabriel Sebastião"
+date: "16/01/2020"
+output: html_document
+---
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, cache=TRUE}
+if (!file.exists("activity.csv")){
+        unzip("activity.zip") 
+}
+act_data <- read.csv("activity.csv",na.strings = "NA")
+act_data$date <- as.Date(act_data$date, format = "%Y-%m-%d")
+```
+
+```{r barplot, fig.height = 4}
+#
+hist(with(act_data, tapply(steps,date, sum)))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
