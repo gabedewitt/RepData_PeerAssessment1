@@ -5,21 +5,127 @@ date: "16/01/2020"
 output: html_document
 ---
 
-## Including Plots
+## Loading and preprocessing the data
 
-You can also embed plots, for example:
-
-```{r pressure, cache=TRUE}
+First the data is loaded, and if needed the zip file is unziped:
+```{r Data Loading}
 if (!file.exists("activity.csv")){
         unzip("activity.zip") 
 }
 act_data <- read.csv("activity.csv",na.strings = "NA")
 act_data$date <- as.Date(act_data$date, format = "%Y-%m-%d")
+
 ```
 
-```{r barplot, fig.height = 4}
-#
-hist(with(act_data, tapply(steps,date, sum)))
+## What is mean total number of steps taken per day?
+
+Calculating the total number of steps taken per day:
+
+```{r total number of steps}
+total_step_day <- aggregate(steps ~ date,act_data, sum)
+head(total_step_day)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Then, the histogram is drawn:
+
+```{r Histogram, fig.height = 4}
+hist(total_step_day$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
+```
+
+## What is the average daily activity pattern?
+
+The mean and median values of total number of steps taken per day are:
+
+```{r Mean and median}
+step_mean <- mean(total_step_day$steps)
+step_median <- median(total_step_day$steps)
+# The mean is:
+step_mean
+# And the median:
+step_median
+```
+
+```{r Time series graph, fig.height = 4}
+total_step_interval <- aggregate(steps ~ interval,act_data, mean)
+plot(total_step_interval, type = "l", main = "Time series graph")
+```
+
+The interval with the maximum number of steps is:  
+```{r Max interval}
+total_step_interval$interval[max(total_step_interval$steps)]
+```
+Therefore, the interval of 5:05pm is the day with the maximum number of steps, on average.
+
+# Imputing missing values
+
+Calculating how much of the data is missing:
+
+```{r Calculating how much of the data is missing}
+sum(is.na(act_data))
+(mean(is.na(act_data))*100)
+```
+
+We arrive at the percentual of missing data: 4.37%
+
+### Dealing with the missing values
+
+Since it was suggested the creation of a new dataset, the approach chosen was to input the average value of steps for the interval, when there's a missing value
+
+```{r creating the new dataset}
+data_mean_interval <- act_data
+for (i in 1:nrow(data_mean_interval)) {
+  if (is.na(data_mean_interval$steps[i])) {
+    interval_match <- data_mean_interval$interval[i]
+    row_match <- total_step_interval[total_step_interval$interval == interval_match,]
+    data_mean_interval$steps[i] <- row_match$steps
+  }
+}
+```
+
+Now we can calculate the total number of steps taken per day and see the results:
+
+```{r}
+total_step_day_filled <- aggregate(steps ~ date, data_mean_interval, sum)
+head(total_step_day_filled)
+```
+
+Now there are values for January 1st for example, let's see if the histogram has changed as well:
+
+```{r NewHistogram, fig.height = 4}
+hist(total_step_day_filled$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
+```
+
+Well, it doesn't seem any different, let's look at the mean and median values:
+
+```{r 2nd Mean and median}
+step_mean_filled <- mean(total_step_day_filled$steps)
+step_median_filled <- median(total_step_day_filled$steps)
+# The mean is:
+step_mean_filled
+# And the median:
+step_median_filled
+```
+Well, both the mean and the median have converged into the value of the first mean that was taken before dealing with the NAs. So, in a way the dataset was filled in such way that there wasn't any divergence towards the mean values.
+
+# Are there differences in activity patterns between weekdays and weekends?
+
+
+```{r 2nd Time series graph, fig.height = 4}
+
+library(lubridate)
+library(ggplot2)
+for (i in 1:nrow(data_mean_interval)) {
+        if (wday(data_mean_interval$date[i]) == 1 | wday(data_mean_interval$date[i]) == 7){
+                data_mean_interval$day_type[i] <- "weekend"
+        }
+        else{
+                data_mean_interval$day_type[i] <- "weekday"
+        }
+}
+
+data_mean_interval$day_type <- as.factor(data_mean_interval$day_type)
+
+total_step_interval_filled <- aggregate(steps ~ interval + day_type, data_mean_interval, mean)
+
+qplot(interval, steps ,data = total_step_interval_filled, facets = day_type~., type = "l", geom=c("line"), main = "Time series graph")
+```
