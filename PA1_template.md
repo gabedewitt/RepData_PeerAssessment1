@@ -61,7 +61,7 @@ It is odd that January First doesn't appear in the summed data, but that does se
 
 Let's see a histogram of the data:
 
-![](PA1_template_files/figure-html/Histogram-1.png)<!-- -->
+![](PA1_template_files/figure-html/plot1-1.png)<!-- -->
 
 It seems that the majority of days have between ten thousand and fifteen thounsand total steps. 
 
@@ -113,7 +113,7 @@ Therefore, the interval of 5 minutes starting 8:35am is the one that. on average
 
 Highlighting it in blue:
 
-![](PA1_template_files/figure-html/Time series graph + max line-1.png)<!-- -->
+![](PA1_template_files/figure-html/plot2-1.png)<!-- -->
 
 ## Imputing missing values
 
@@ -181,7 +181,7 @@ Now there are values for January 1st for example, let's see if the histogram has
 hist(total_step_day_filled$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
 ```
 
-![](PA1_template_files/figure-html/NewHistogram-1.png)<!-- -->
+![](PA1_template_files/figure-html/plot3-1.png)<!-- -->
 
 Well, it doesn't seem any different in form, but it's visible that the frequency has risen a lot in the values around the mean. 
 Let's look if the mean and median values have changed:
@@ -235,6 +235,6 @@ total_step_interval_filled <- aggregate(steps ~ interval + day_type, data_mean_i
 qplot(interval, steps ,data = total_step_interval_filled, facets = day_type~., type = "l", geom=c("line"), main = "Time series graph weekday versus weekend")
 ```
 
-![](PA1_template_files/figure-html/2nd Time series graph-1.png)<!-- -->
+![](PA1_template_files/figure-html/plot4-1.png)<!-- -->
 
 So based on this graph we can see that the activity during the morning gets "pushed" a little foward, during the weekend, and the activity during the afternoon and night appear to be higher than during the weekdays. 

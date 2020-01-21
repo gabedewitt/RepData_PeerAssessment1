@@ -38,7 +38,7 @@ It is odd that January First doesn't appear in the summed data, but that does se
 
 Let's see a histogram of the data:
 
-```{r Histogram, fig.height = 4, echo=FALSE}
+```{r plot1, fig.height = 4, echo=FALSE}
 hist(total_step_day$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
 ```
 
@@ -72,7 +72,7 @@ Therefore, the interval of 5 minutes starting 8:35am is the one that. on average
 
 Highlighting it in blue:
 
-```{r Time series graph + max line, fig.height = 4, echo=FALSE}
+```{r plot2, fig.height = 4, echo=FALSE}
 total_step_interval <- aggregate(steps ~ interval,act_data, mean)
 plot(total_step_interval, type = "l", main = "Time series graph of an average day")
 abline(v=total_step_interval$interval[total_step_interval$steps == max(total_step_interval$steps)], lty = 2, col = "blue", lwd = 1.5)
@@ -117,7 +117,7 @@ head(total_step_day_filled)
 
 Now there are values for January 1st for example, let's see if the histogram has changed as well:
 
-```{r NewHistogram, fig.height = 4}
+```{r plot3, fig.height = 4}
 hist(total_step_day_filled$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
 ```
 
@@ -144,7 +144,7 @@ library(ggplot2)
 ```
 
 
-```{r 2nd Time series graph, fig.height = 4,warning=FALSE}
+```{r plot4, fig.height = 4,warning=FALSE}
 #using wday to label Sundays and Saturdays as "weekend", and the rest as "weekday"
 for (i in 1:nrow(data_mean_interval)) {
         if (wday(data_mean_interval$date[i]) == 1 | wday(data_mean_interval$date[i]) == 7){
