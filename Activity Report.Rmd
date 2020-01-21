@@ -1,7 +1,6 @@
 ---
 title: "Activity monitoring data report"
 author: "Gabriel Sebastião"
-date: "16/01/2020"
 output: html_document
 ---
 
@@ -14,8 +13,14 @@ if (!file.exists("activity.csv")){
 }
 act_data <- read.csv("activity.csv",na.strings = "NA")
 act_data$date <- as.Date(act_data$date, format = "%Y-%m-%d")
-
 ```
+
+Let's look at the data:
+```{r Viewing the data}
+head(act_data)
+```
+
+It looks like January First does contain many NA values
 
 ## What is mean total number of steps taken per day?
 
@@ -25,12 +30,15 @@ Calculating the total number of steps taken per day:
 total_step_day <- aggregate(steps ~ date,act_data, sum)
 head(total_step_day)
 ```
+It is odd that January First doesn't appear in the summed data, but that does seem to correlate with NAs present in the original data.
 
-Then, the histogram is drawn:
+Let's see a histogram of the data:
 
-```{r Histogram, fig.height = 4}
+```{r Histogram, fig.height = 4, echo=FALSE}
 hist(total_step_day$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
 ```
+
+It seems that the majority of days have between ten thousand and fifteen thounsand total steps. 
 
 ## What is the average daily activity pattern?
 
@@ -44,28 +52,43 @@ step_mean
 # And the median:
 step_median
 ```
+So it seems that both the median and the mean value are close to each other.
 
+But let's look at the distribution of steps per interval, on average:
 ```{r Time series graph, fig.height = 4}
 total_step_interval <- aggregate(steps ~ interval,act_data, mean)
-plot(total_step_interval, type = "l", main = "Time series graph")
+plot(total_step_interval, type = "l", main = "Time series graph of an average day")
 ```
 
 The interval with the maximum number of steps is:  
 ```{r Max interval}
-total_step_interval$interval[max(total_step_interval$steps)]
+total_step_interval$interval[total_step_interval$steps == max(total_step_interval$steps)]
 ```
-Therefore, the interval of 5:05pm is the day with the maximum number of steps, on average.
+Therefore, the interval of 5 minutes starting 8:35am is the one that. on average, has the higher number of steps according to the data and in the graph corresponds to that peak.
+
+Highlighting it in blue:
+
+```{r Time series graph + max line, fig.height = 4, echo=FALSE}
+total_step_interval <- aggregate(steps ~ interval,act_data, mean)
+plot(total_step_interval, type = "l", main = "Time series graph of an average day")
+abline(v=total_step_interval$interval[total_step_interval$steps == max(total_step_interval$steps)], lty = 2, col = "blue", lwd = 1.5)
+```
 
 # Imputing missing values
 
-Calculating how much of the data is missing:
+Let's see how much of the data is missing:
 
 ```{r Calculating how much of the data is missing}
 sum(is.na(act_data))
+```
+
+So it looks like 2304 rows have NA values.
+
+```{r Calculating the percentage of the missing data}
 (mean(is.na(act_data))*100)
 ```
 
-We arrive at the percentual of missing data: 4.37%
+And that amounts to a percentage of 4.37% missing data in the dataset.
 
 ### Dealing with the missing values
 
@@ -95,7 +118,8 @@ Now there are values for January 1st for example, let's see if the histogram has
 hist(total_step_day_filled$steps, main = "Histogram of total steps taken in a day", xlab = "Total Steps")
 ```
 
-Well, it doesn't seem any different, let's look at the mean and median values:
+Well, it doesn't seem any different in form, but it's visible that the frequency has risen a lot in the values around the mean. 
+Let's look if the mean and median values have changed:
 
 ```{r 2nd Mean and median}
 step_mean_filled <- mean(total_step_day_filled$steps)
@@ -109,11 +133,16 @@ Well, both the mean and the median have converged into the value of the first me
 
 # Are there differences in activity patterns between weekdays and weekends?
 
+This was the final question proposed in the project, so let's use another time series graph to show what changes between the weekend and the rest of the week:
 
-```{r 2nd Time series graph, fig.height = 4}
-
+```{r Loading some libraries, echo = FALSE, warning=FALSE,message=FALSE}
 library(lubridate)
 library(ggplot2)
+```
+
+
+```{r 2nd Time series graph, fig.height = 4,warning=FALSE}
+#using wday to label Sundays and Saturdays as "weekend", and the rest as "weekday"
 for (i in 1:nrow(data_mean_interval)) {
         if (wday(data_mean_interval$date[i]) == 1 | wday(data_mean_interval$date[i]) == 7){
                 data_mean_interval$day_type[i] <- "weekend"
@@ -123,9 +152,12 @@ for (i in 1:nrow(data_mean_interval)) {
         }
 }
 
+#Defining day_type as a factor so that it can be used to separate the time series graphs
 data_mean_interval$day_type <- as.factor(data_mean_interval$day_type)
 
 total_step_interval_filled <- aggregate(steps ~ interval + day_type, data_mean_interval, mean)
 
-qplot(interval, steps ,data = total_step_interval_filled, facets = day_type~., type = "l", geom=c("line"), main = "Time series graph")
+qplot(interval, steps ,data = total_step_interval_filled, facets = day_type~., type = "l", geom=c("line"), main = "Time series graph weekday versus weekend")
 ```
+
+So based on this graph we can see that the activity during the morning gets "pushed" a little foward, during the weekend, and the activity during the afternoon and night appear to be higher than during the weekdays. 
